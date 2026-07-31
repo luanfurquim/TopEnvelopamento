@@ -4,6 +4,7 @@ deployment:
     - export DEPLOYPATH=$HOME/public_html/
     - /bin/mkdir -p $DEPLOYPATH
     - /bin/cp -f index.html $DEPLOYPATH
+    - /bin/bash -c "shopt -s nullglob; cp -f *.css $DEPLOYPATH 2>/dev/null; cp -f *.js $DEPLOYPATH 2>/dev/null; true"
     - /bin/cp -f robots.txt $DEPLOYPATH 2>/dev/null || true
     - /bin/cp -f .htaccess $DEPLOYPATH 2>/dev/null || true
     - /bin/rm -rf $DEPLOYPATH/assets
