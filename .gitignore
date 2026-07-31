@@ -1,0 +1,22 @@
+# Dependências / build
+node_modules/
+dist/
+build/
+.cache/
+
+# Arquivos de trabalho — o index.html é autocontido e não precisa deles
+uploads/
+screenshots/
+support.js
+image-slot.js
+standalone-src.dc.html
+.image-slots.state.json
+
+# Sistema / editor
+.DS_Store
+Thumbs.db
+*.log
+.env
+.env.*
+.vscode/
+.idea/
