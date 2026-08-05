@@ -158,7 +158,8 @@
     function ensureStyle(){
       if(document.getElementById('mb-fix-style')) return;
       var st=document.createElement('style'); st.id='mb-fix-style';
-      st.textContent='@media (max-width:768px){header nav a[href^="#"]{display:none!important;}'
+      st.textContent='html{overflow-x:hidden;overflow-x:clip;}'
+        +'@media (max-width:768px){header nav a[href^="#"]{display:none!important;}'
         +'#mb-burger{display:inline-flex!important;align-items:center;justify-content:center;width:42px;height:42px;border:1px solid #262626;border-radius:10px;background:transparent;cursor:pointer;margin-left:10px;flex:0 0 auto;}'
         +'#mb-burger span{position:relative;width:20px;height:2px;background:#f4f2ee;display:block;transition:.2s;}'
         +'#mb-burger span::before,#mb-burger span::after{content:"";position:absolute;left:0;width:20px;height:2px;background:#f4f2ee;transition:.2s;}'
