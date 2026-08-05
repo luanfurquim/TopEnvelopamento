@@ -1,2 +1,4 @@
 User-agent: *
 Allow: /
+
+Sitemap: https://ppftopenvelopamento.com.br/sitemap.xml
