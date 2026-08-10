@@ -8,6 +8,8 @@ deployment:
     - /bin/cp -f robots.txt $DEPLOYPATH 2>/dev/null || true
     - /bin/cp -f sitemap.xml $DEPLOYPATH 2>/dev/null || true
     - /bin/cp -f .htaccess $DEPLOYPATH 2>/dev/null || true
+    # Verificacao do Google Search Console — estava no repo mas nunca era publicada (404 no ar)
+    - /bin/bash -c "shopt -s nullglob; cp -f google*.html $DEPLOYPATH 2>/dev/null; true"
     - /bin/rm -rf $DEPLOYPATH/assets
     - /bin/cp -R assets $DEPLOYPATH 2>/dev/null || true
     - /bin/rm -rf $DEPLOYPATH/img-bundle
