@@ -10,7 +10,7 @@
 <helmet>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PPF: Proteção de Pintura | Top Envelopamento — Rio Preto</title>
-<meta name="description" content="Proteja a pintura do seu carro sem mudar a cor. PPF QuadFilm em colaboração exclusiva com a Lamborghini, aplicado por quem tem 20 anos de experiência em São José do Rio Preto. Garantia de 7 a 10 anos.">
+<meta name="description" content="Proteja a pintura do seu carro sem mudar a cor. PPF QuadFilm aplicado em São José do Rio Preto, com 20 anos de experiência e garantia de 7 a 10 anos.">
 <meta name="theme-color" content="#0a0a0a">
 <meta name="robots" content="index, follow">
 <meta property="og:type" content="website">
@@ -52,6 +52,141 @@
   image-slot{display:block}
   @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
+
+<!-- ================= SEO / COMPARTILHAMENTO =================
+     Estas tags PRECISAM ficar dentro do <helmet>. O bundler substitui o
+     documento inteiro ao renderizar e só preserva o conteudo do <helmet> —
+     o que estiver no <head> externo do index.html e destruido antes de o
+     Googlebot ler a pagina.
+============================================================== -->
+<link rel="canonical" href="https://ppftopenvelopamento.com.br/">
+<meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1">
+<meta property="og:url" content="https://ppftopenvelopamento.com.br/">
+<meta property="og:image" content="https://ppftopenvelopamento.com.br/assets/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:alt" content="PPF Top Envelopamento — proteção de pintura automotiva em São José do Rio Preto">
+<meta name="twitter:image" content="https://ppftopenvelopamento.com.br/assets/og-image.jpg">
+<meta name="twitter:title" content="PPF: proteja a pintura sem mudar a cor | Top Envelopamento">
+<meta name="twitter:description" content="Película transparente que blinda a pintura original contra riscos, pedras e o tempo. PPF QuadFilm aplicado em Rio Preto.">
+<meta name="geo.region" content="BR-SP">
+<meta name="geo.placename" content="São José do Rio Preto">
+<meta name="geo.position" content="-20.8197;-49.3794">
+<meta name="ICBM" content="-20.8197, -49.3794">
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "AutoBodyShop",
+    "name": "Top Envelopamento",
+    "description": "Aplicação de PPF (película de proteção de pintura) QuadFilm em São José do Rio Preto. Garantia de 7 a 10 anos.",
+    "image": "https://ppftopenvelopamento.com.br/assets/og-image.jpg",
+    "url": "https://ppftopenvelopamento.com.br/",
+    "telephone": "+5517991883704",
+    "email": "topenvelopamento@gmail.com",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "R. Marcio Yutaka Okayama, 264 - Setparque Avenida 2",
+      "addressLocality": "São José do Rio Preto",
+      "addressRegion": "SP",
+      "postalCode": "15045-641",
+      "addressCountry": "BR"
+    },
+    "areaServed": "São José do Rio Preto e região",
+    "priceRange": "$",
+    "sameAs": [
+      "https://www.instagram.com/topenvelopamentoriopreto"
+    ]
+  }
+  </script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "O PPF muda a cor do meu carro?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Não. É transparente e mantém a cor e o brilho originais. Quem muda a aparência é o envelopamento, que é outro serviço."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "O PPF amarela com o tempo?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "O PPF QuadFilm é feito de TPU puro alifático, que resiste aos raios UV e não amarela. Só o TPU comum (aromático) amarela com o tempo."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Quanto tempo dura e qual a garantia?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A garantia é de 7 a 10 anos, conforme a linha da película. A durabilidade da proteção varia com o uso e a manutenção do veículo."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Preciso proteger o carro todo?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Não. Dá pra proteger só as áreas mais expostas, como para-choque, capô e faróis, ou o veículo inteiro. A gente monta a melhor opção no orçamento."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Como faço o orçamento?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "É só chamar no WhatsApp, dizer qual é o seu carro e o que quer proteger. A gente te orienta e passa o valor."
+      }
+    }
+  ]
+}
+  </script>
+<!-- ================= CONVERSAO GOOGLE ADS =================
+     Dispara "conversao" no clique de qualquer link de WhatsApp.
+     Listener delegado no document: sobrevive ao re-render do bundler,
+     mesmo padrao ja usado pelo menu hamburguer.
+
+     >>> Rotulo preenchido em 10/08/2026 <<<
+     Google Ads > Ferramentas > Medicao > Conversoes > Clique WhatsApp >
+     Instalar manualmente. O rotulo e o trecho depois da barra em
+     AW-16763500925/XXXXXXXXXXXX
+========================================================= -->
+<script>
+(function () {
+  // O bundler executa o conteudo do <helmet> mais de uma vez. Sem esta trava,
+  // dois listeners sao registrados e cada clique enviaria a conversao em dobro.
+  if (window.__topConversaoWhatsapp) return;
+  window.__topConversaoWhatsapp = true;
+
+  var ROTULO = 'Lr_VCIP2st8cEP3yurk-';
+  var ID = 'AW-16763500925';
+  var ultimo = 0;
+
+  document.addEventListener('click', function (e) {
+    if (!e.target || !e.target.closest) return;
+    if (!e.target.closest('a[href*="wa.me"], a[href*="api.whatsapp.com"]')) return;
+
+    var agora = new Date().getTime();
+    if (agora - ultimo < 1000) return;
+    ultimo = agora;
+
+    if (typeof gtag !== 'function') {
+      console.warn('[ads] gtag indisponivel — conversao nao enviada.');
+      return;
+    }
+    gtag('event', 'conversion', {
+      send_to: ID + '/' + ROTULO,
+      transport_type: 'beacon'
+    });
+  }, true);
+})();
+</script>
 </helmet>
 
 <div style="background:#0a0a0a;color:#f2f1ef;font-family:Archivo,Helvetica,sans-serif">
