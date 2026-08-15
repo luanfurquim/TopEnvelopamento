@@ -308,6 +308,27 @@ def otimiza_imagens(mapa_img, pular=False):
 WA_NUMERO = "5517991883704"
 WA_MSG = "Oi! Vim pelo site e quero um orçamento de PPF. Meu carro é um :"
 
+ID_GOOGLE_ADS = "AW-16763500925"
+
+# O carregador do gtag.js NAO mora no <helmet> — no bundle ele ficava no
+# <head> externo, fora do template. Sem ele, `gtag` fica indefinido e o
+# listener de conversao (que vive no <helmet>) chama uma funcao que nao
+# existe: nenhuma conversao e registrada.
+#
+# Isso quebrou de verdade no deploy de 14/08/2026, porque a primeira versao
+# deste script so copiava o <helmet>. Fica no topo do <head> de proposito.
+TAG_GOOGLE_ADS = f"""<!-- Google Ads — carregador do gtag. Precisa vir antes de qualquer
+     script que chame gtag(). O listener de conversao esta mais abaixo,
+     dentro do bloco vindo do <helmet>. -->
+<script async src="https://www.googletagmanager.com/gtag/js?id={ID_GOOGLE_ADS}"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){{dataLayer.push(arguments);}}
+  gtag('js', new Date());
+
+  gtag('config', '{ID_GOOGLE_ADS}');
+</script>"""
+
 
 def link_whatsapp():
     from urllib.parse import quote
@@ -631,6 +652,7 @@ def monta_html(tpl, mapa_fontes):
         '<!DOCTYPE html>\n'
         '<html lang="pt-BR">\n<head>\n'
         '<meta charset="utf-8">\n'
+        + TAG_GOOGLE_ADS + '\n'
         + cabeca.strip() + '\n'
         '</head>\n<body>\n'
         + corpo.strip() + '\n'
@@ -663,6 +685,11 @@ def confere(caminho):
         ("imagens em HTML real",       conta('<img'),     28, 'igual'),
         ("links de WhatsApp",          conta('wa.me'),     6, 'igual'),
         ("texto visivel sem JS",       len(texto),      4000, 'min'),
+        # As tres linhas abaixo existem porque o carregador do gtag foi
+        # perdido no build de 14/08/2026 e a conversao parou de disparar.
+        ("carregador do gtag.js",      doc.count('googletagmanager.com/gtag/js'), 1, 'min'),
+        ("gtag('config') do Ads",      len(re.findall(r"gtag\s*\(\s*['\"]config['\"]", doc)), 1, 'min'),
+        ("dataLayer declarado",        doc.count('window.dataLayer'), 1, 'min'),
         ("tag do Google Ads",          doc.count('AW-16763500925'), 1, 'min'),
         ("rotulo de conversao",        doc.count('Lr_VCIP2st8cEP3yurk-'), 1, 'min'),
         ("schema AutoBodyShop",        doc.count('AutoBodyShop'), 1, 'min'),
