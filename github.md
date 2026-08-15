@@ -3,63 +3,109 @@ branch: main
 deploy: HostGator cPanel → Git Version Control (.cpanel.yml publica em public_html/)
 
 ## Last sync
-date: 2026-08-10
-commit: correção de SEO + conversão de WhatsApp
+date: 2026-08-14
+commit: landing page vira HTML estático + carrossel sobe para a 3ª seção
 
-### Atualizado em 10/08/2026
-- **Tags de SEO movidas para dentro do `<helmet>`** — ver "Como reconstruir" abaixo
-- `og:image` e `twitter:image` agora com URL absoluta (o preview falhava com caminho relativo)
-- `meta description` reduzida de 200 para 149 caracteres (o Google cortava em ~155)
-- Email corrigido: `topevenlopamento@` → `topenvelopamento@` (rodapé e JSON-LD)
-- Script de conversão de clique no WhatsApp para o Google Ads (`AW-16763500925`)
-- `.cpanel.yml` passou a publicar `google*.html` — o arquivo de verificação do
-  Search Console estava no repo mas respondia 404 no ar
+### Atualizado em 14/08/2026 — a mudança que importa
 
-## Onde as tags de SEO precisam ficar
+**O `index.html` deixou de ser um bundle e passou a ser HTML de verdade.**
 
-O `index.html` é um bundle: o documento real vai como string dentro de um
-`<script>` no fim do arquivo e o runtime **substitui o documento inteiro** ao
-carregar. Só o conteúdo do `<helmet>` sobrevive.
+O que estava no ar era o arquivo de preview do construtor: todo o conteúdo
+viajava como string JSON dentro de `<script type="__bundler/template">` e o
+JavaScript montava a página no navegador. Funcionava para humano e era
+invisível para robô — sem executar JS, a página tinha 0 seção, 0 imagem e
+0 botão de WhatsApp. O site não estava indexado no Google.
 
-Tudo que for colocado no `<head>` externo do `index.html` é descartado antes
-de o Googlebot ler a página. **Toda tag de SEO vai dentro do `<helmet>`** do
-`Top Envelopamento PPF.dc.html`.
+| | Antes | Depois |
+|---|---|---|
+| Seções em HTML real | 0 de 10 | 10 de 10 |
+| Imagens em HTML real | 0 de 28 | 28 de 28 |
+| Botões de WhatsApp em HTML real | 0 de 6 | 6 de 6 |
+| Texto visível sem executar JS | 1.340 (era CSS) | 16.923 |
+| `index.html` | 429 KB | 85 KB |
+| Peso de imagem | 2,29 MB | 1,05 MB (WebP) |
+| JS para a página existir | React + ReactDOM + runtime (212 KB) | nenhum |
 
-*(A nota anterior dizia que "o bundler só preserva o `<title>`" e por isso
-mandava reinjetar tudo no `<head>` do bundle a cada build. Era esse o erro:
-o bundler preserva o `<helmet>` inteiro.)*
+Junto vieram: `lang="pt-BR"` estático, `width`/`height` em todas as imagens
+(acaba o salto de layout), `fetchpriority="high"` no hero, `loading="lazy"`
+no resto, WebP com fallback JPG via `<picture>`, e o menu hambúrguer escrito
+no HTML em vez de injetado por um script que rodava a cada 100 ms.
+
+**A ordem das seções mudou:** o carrossel de projetos saiu da 7ª posição
+(dobra 10,3 de 14 no celular, visto por ~22% de quem entra) para a 3ª
+(dobra 2,1). O bloco técnico do QuadFilm desceu para depois da prova visual.
+A decisão está documentada no workspace de tráfego, em
+`02-LANDING-PAGE/diagnostico-2026-08-14/05-carrossel-decisao.md`.
 
 ## Como reconstruir o index.html
-1. Editar `Top Envelopamento PPF.dc.html` — inclusive as tags de SEO, que
-   agora moram no `<helmet>` dele
-2. Gerar `standalone-src.dc.html` (cópia sem a referência a image-slot.js)
-3. Compilar em `index.html` (bundle autocontido)
-4. **Não é mais necessário reinjetar nada no `<head>`.** Conferir só se o
-   `<helmet>` veio completo.
+
+```
+Top Envelopamento PPF.dc.html   (edição no construtor)
+    -> index.bundle.html        (saída compilada do construtor)
+    -> python build.py          (novo passo — não pular)
+    -> index.html               (estático, é o que vai pro ar)
+```
+
+1. Editar `Top Envelopamento PPF.dc.html` — as tags de SEO moram no
+   `<helmet>` dele
+2. Compilar no construtor e salvar a saída como **`index.bundle.html`**
+   (não como `index.html`)
+3. Rodar `python build.py`
+4. Conferir que a conferência no fim saiu toda `[OK]`
+
+**Se pular o passo 3, o bundle volta pro ar e a página fica invisível de
+novo.** O `build.py` recusa rodar se não achar um bundle válido.
+
+### Para mudar a ordem das seções
+
+Editar `ORDEM_SECOES` no topo do `build.py` e rodar de novo. Cada número é a
+posição da seção no template original.
+
+### Requisito
+
+`python build.py` precisa do [Pillow](https://pypi.org/project/Pillow/) para
+otimizar imagem: `pip install Pillow`. Sem ele o build roda mesmo assim, só
+copia as imagens sem reduzir e avisa.
+
+Use `python build.py --sem-imagens` para pular a otimização quando estiver
+mexendo só em texto ou ordem — é bem mais rápido.
 
 ## Verificar depois de cada deploy
+
 - [Teste de Resultados Aprimorados](https://search.google.com/test/rich-results)
   deve encontrar `AutoBodyShop` e `FAQPage`
+- Search Console → **Inspeção de URL** → **Testar URL ativo**: o HTML
+  renderizado tem que trazer as 10 seções
 - [Sharing Debugger](https://developers.facebook.com/tools/debug/) para
   atualizar o cache do preview do WhatsApp
 - Clicar num botão de WhatsApp com o Tag Assistant aberto e conferir se sai
-  o evento `conversion`
+  o evento `conversion` (`AW-16763500925/Lr_VCIP2st8cEP3yurk-`)
+- Conferir que nenhuma imagem responde 404: o `.htaccess` tem
+  `ErrorDocument 404 /index.html`, então imagem faltando devolve a página
+  inteira em vez de um erro visível
 
 ## Estrutura de pastas
 
 | Pasta | Papel | Vai pro servidor? |
 | --- | --- | --- |
-| `img/` | fotos-fonte, usadas pelo `.dc.html` ao editar/reconstruir | não |
-| `img-bundle/` | as mesmas fotos, referenciadas pelo `index.html` compilado | sim |
-| `assets/` | og-image.jpg, favicon.svg, favicon.png | sim |
+| `img/` | fotos originais, fonte do build | não |
+| `assets/img/` | saída do build: JPG redimensionado + WebP | **sim** |
+| `assets/fonts/` | as 7 woff2, extraídas do bundle | **sim** |
+| `assets/` | og-image.jpg, favicon.svg, favicon.png, logo-top.svg | **sim** |
 
-As duas pastas de imagem têm arquivos byte a byte idênticos (17 em cada), mas
-**as duas são necessárias**: uma é fonte de edição, a outra é saída de build.
-Apagar `img/` inviabiliza reconstruir o site a partir do `.dc.html`.
+`img-bundle/` **foi removida em 14/08/2026.** Era cópia byte a byte de `img/`
+(17 arquivos, 2,4 MB) e só servia para o `build.py` descobrir qual UUID do
+bundle correspondia a qual foto. Essa correspondência agora está gravada em
+`build-imagens.json`.
+
+Se um dia o construtor gerar UUIDs novos (troca de fotos), o `build.py` avisa
+e o caminho é restaurar `img-bundle/` do histórico do git, rodar uma vez para
+regravar o mapa, e apagar de novo.
 
 ## Screen map
+
 | Tela | Arquivos de origem |
 | --- | --- |
-| Landing page PPF (index.html) | Top Envelopamento PPF.dc.html → standalone-src.dc.html → index.html |
-| Fotos | img/ (hero, porsche, 01–11, wpf-01–04) |
+| Landing page PPF | Top Envelopamento PPF.dc.html → index.bundle.html → build.py → index.html |
+| Fotos | img/ (hero, porsche, 01–11, wpf-01–04) → assets/img/ |
 | Compartilhamento | assets/og-image.jpg, assets/favicon.svg |

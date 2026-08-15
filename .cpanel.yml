@@ -1,4 +1,9 @@
 ---
+# Publica a landing em public_html/.
+#
+# Desde 14/08/2026 o index.html e HTML estatico gerado por build.py, e todo
+# recurso que ele usa (imagens em WebP/JPG, fontes, logo, favicons, og-image)
+# mora em assets/. Por isso img-bundle/ saiu daqui: nada mais aponta pra ela.
 deployment:
   tasks:
     - export DEPLOYPATH=$HOME/public_html/
@@ -8,9 +13,10 @@ deployment:
     - /bin/cp -f robots.txt $DEPLOYPATH 2>/dev/null || true
     - /bin/cp -f sitemap.xml $DEPLOYPATH 2>/dev/null || true
     - /bin/cp -f .htaccess $DEPLOYPATH 2>/dev/null || true
-    # Verificacao do Google Search Console — estava no repo mas nunca era publicada (404 no ar)
+    # Verificacao do Google Search Console
     - /bin/bash -c "shopt -s nullglob; cp -f google*.html $DEPLOYPATH 2>/dev/null; true"
+    # assets/ carrega imagens, fontes e favicons — e a unica pasta publicada
     - /bin/rm -rf $DEPLOYPATH/assets
     - /bin/cp -R assets $DEPLOYPATH 2>/dev/null || true
+    # img-bundle/ nao e mais usada pelo site; limpa o que ficou de antes
     - /bin/rm -rf $DEPLOYPATH/img-bundle
-    - /bin/cp -R img-bundle $DEPLOYPATH 2>/dev/null || true

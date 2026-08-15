@@ -2,6 +2,15 @@
 
 DirectoryIndex index.html
 
+# O ExpiresByType so dispara se o Apache souber derivar o Content-Type da
+# extensao. Sem estas linhas, .webp e .woff2 saem sem tipo declarado, a regra
+# de cache de 1 ano nunca vale e a segunda visita fica mais lenta — sem que
+# nada quebre visualmente, porque o navegador adivinha o formato.
+<IfModule mod_mime.c>
+  AddType image/webp .webp
+  AddType font/woff2 .woff2
+</IfModule>
+
 <IfModule mod_deflate.c>
   AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript image/svg+xml
 </IfModule>
@@ -14,6 +23,7 @@ DirectoryIndex index.html
   ExpiresByType image/jpeg "access plus 1 year"
   ExpiresByType image/webp "access plus 1 year"
   ExpiresByType image/svg+xml "access plus 1 year"
+  ExpiresByType font/woff2 "access plus 1 year"
 </IfModule>
 
 <IfModule mod_headers.c>
