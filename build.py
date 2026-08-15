@@ -305,8 +305,48 @@ def otimiza_imagens(mapa_img, pular=False):
 
 # ---------------------------------------------------------------- HTML
 
-WA_NUMERO = "5517991883704"
+# ---------------------------------------------------------------------------
+# O NUMERO DE WHATSAPP DA TOP — fonte unica de verdade
+#
+# Corrigido em 15/08/2026. A pagina inteira estava apontando para
+# 5517991883704, que NAO e o numero certo. Confirmado pelo Luan: o numero
+# correto e o (17) 99110-7136 — o mesmo que esta no Perfil da Empresa no
+# Google.
+#
+# O build reescreve TODA ocorrencia de numero antigo pelo valor abaixo, em
+# qualquer formato. Assim, mesmo que o construtor reexporte com o numero
+# velho, o arquivo publicado sai certo — e a conferencia reprova o build se
+# sobrar algum.
+# ---------------------------------------------------------------------------
+WA_NUMERO = "5517991107136"          # so digitos, com DDI
+WA_EXIBICAO = "(17) 99110-7136"      # como aparece escrito na pagina
 WA_MSG = "Oi! Vim pelo site e quero um orçamento de PPF. Meu carro é um :"
+
+# Numeros que ja estiveram na pagina e precisam ser substituidos.
+# Acrescentar aqui se o numero mudar de novo.
+WA_ANTIGOS = [
+    ("5517991883704", "991883704", "99188-3704"),
+]
+
+
+def corrige_whatsapp(texto):
+    """
+    Troca qualquer numero antigo pelo atual, em todos os formatos que
+    aparecem na pagina: wa.me/<digitos>, +55<digitos> do schema, e o
+    (17) 9xxxx-xxxx escrito no rodape.
+    """
+    trocas = 0
+    curto_novo = WA_NUMERO[2:]          # sem o 55
+    for completo, curto, formatado in WA_ANTIGOS:
+        for de, para in ((completo, WA_NUMERO), (curto, curto_novo),
+                         (formatado, WA_EXIBICAO)):
+            n = texto.count(de)
+            if n:
+                texto = texto.replace(de, para)
+                trocas += n
+    if trocas:
+        log(f"  {trocas} ocorrencias do numero antigo corrigidas para {WA_EXIBICAO}")
+    return texto
 
 ID_GOOGLE_ADS = "AW-16763500925"
 
@@ -697,6 +737,10 @@ def confere(caminho):
         ("lang=pt-BR no <html>",       doc.count('<html lang="pt-BR"'), 1, 'min'),
         ("uuid sobrando no HTML",      len(re.findall(r'src="[0-9a-f-]{36}"', doc)), 0, 'igual'),
         ("placeholder {{ }} sobrando", len(re.findall(r'\{\{[^}]+\}\}', doc)), 0, 'igual'),
+        # O numero errado ficou no ar de 12 a 15/08. Estas duas linhas impedem
+        # que ele volte por uma reexportacao do construtor.
+        ("links wa.me com o numero certo", doc.count(f"wa.me/{WA_NUMERO}"), 6, 'igual'),
+        ("numero ANTIGO sobrando",     sum(doc.count(v) for grupo in WA_ANTIGOS for v in grupo), 0, 'igual'),
     ]
 
     log("")
@@ -738,6 +782,7 @@ def main():
     tpl = resolve_condicionais(tpl)
     tpl = troca_imagens(tpl, mapa_img, mapa_extra, dims)
     doc = monta_html(tpl, mapa_fontes)
+    doc = corrige_whatsapp(doc)
 
     destino = os.path.join(RAIZ, SAIDA)
     with open(destino, 'w', encoding='utf-8', newline='\n') as f:
