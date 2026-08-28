@@ -350,6 +350,14 @@ def corrige_whatsapp(texto):
 
 ID_GOOGLE_ADS = "AW-16763500925"
 
+# Google Analytics 4, propriedade "ppftopenvelopamento.com.br", fluxo "PPF",
+# criada em 28/08/2026. Propriedade propria: o institucional tem a dele, e
+# misturar os dois joga fora justamente o que se quer medir.
+#
+# NAO entra um segundo <script src=".../gtag/js"> — a pagina ja carrega um
+# para o Ads, e dois carregadores duplicam a contagem. So a linha de config.
+ID_GA4 = "G-RLCD0M6EDJ"
+
 # O carregador do gtag.js NAO mora no <helmet> — no bundle ele ficava no
 # <head> externo, fora do template. Sem ele, `gtag` fica indefinido e o
 # listener de conversao (que vive no <helmet>) chama uma funcao que nao
@@ -367,6 +375,7 @@ TAG_GOOGLE_ADS = f"""<!-- Google Ads — carregador do gtag. Precisa vir antes d
   gtag('js', new Date());
 
   gtag('config', '{ID_GOOGLE_ADS}');
+  gtag('config', '{ID_GA4}');
 </script>"""
 
 
@@ -701,7 +710,70 @@ def monta_html(tpl, mapa_fontes):
     )
 
 
+# ---------------------------------------------------------------------------
+# SERVICOS NO SCHEMA
+#
+# O <helmet> do construtor traz o AutoBodyShop sem lista de servicos. Sem ela
+# o Google sabe que existe uma oficina, mas nao sabe o que ela faz — e e essa
+# lista que uma IA generativa le para responder "quem aplica PPF em Rio Preto".
+#
+# hasOfferCatalog nao exige nada visivel na pagina, ao contrario de
+# aggregateRating: marcar nota sem a nota aparecer na tela viola as diretrizes
+# de dados estruturados e custa acao manual. Por isso a nota NAO entra aqui.
+#
+# Os nomes batem com os servicos cadastrados na ficha do Google, de proposito:
+# entidade com o mesmo nome nos dois lugares e o que o Google casa.
+# ---------------------------------------------------------------------------
+SERVICOS = [
+    "Aplicação de PPF",
+    "PPF Parcial",
+    "PPF Carro Inteiro",
+    "Proteção de Pintura Automotiva",
+]
+
+HORARIO = [
+    {"@type": "OpeningHoursSpecification",
+     "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+     "opens": "08:00", "closes": "12:00"},
+    {"@type": "OpeningHoursSpecification",
+     "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+     "opens": "13:30", "closes": "18:00"},
+]
+
+BLOCO_LD = r'(<script type="application/ld\+json"[^>]*>)(.*?)(</script>)'
+
+
+def enriquece_schema(doc):
+    """Acrescenta a lista de servicos ao AutoBodyShop, se ainda nao houver."""
+    for m in re.finditer(BLOCO_LD, doc, re.S):
+        try:
+            dados = json.loads(m.group(2))
+        except ValueError:
+            continue
+        if not (isinstance(dados, dict) and dados.get('@type') == 'AutoBodyShop'):
+            continue
+        if 'hasOfferCatalog' in dados:
+            log("  schema: hasOfferCatalog ja existe, nada a fazer")
+            return doc
+        dados['openingHoursSpecification'] = HORARIO
+        dados['hasOfferCatalog'] = {
+            "@type": "OfferCatalog",
+            "name": "Serviços de PPF",
+            "itemListElement": [
+                {"@type": "Offer",
+                 "itemOffered": {"@type": "Service", "name": nome}}
+                for nome in SERVICOS
+            ],
+        }
+        novo = json.dumps(dados, ensure_ascii=False, indent=2)
+        log("  schema: %d servicos acrescentados ao AutoBodyShop" % len(SERVICOS))
+        return doc[:m.start()] + m.group(1) + '\n' + novo + '\n' + m.group(3) + doc[m.end():]
+    log("  AVISO: nao achei o bloco AutoBodyShop — schema nao enriquecido")
+    return doc
+
+
 # ---------------------------------------------------------------- conferencia
+
 
 def confere(caminho):
     """Os mesmos testes que expuseram o problema original."""
@@ -731,9 +803,12 @@ def confere(caminho):
         ("gtag('config') do Ads",      len(re.findall(r"gtag\s*\(\s*['\"]config['\"]", doc)), 1, 'min'),
         ("dataLayer declarado",        doc.count('window.dataLayer'), 1, 'min'),
         ("tag do Google Ads",          doc.count('AW-16763500925'), 1, 'min'),
+        ("tag do GA4",                 doc.count(ID_GA4), 1, 'min'),
+        ("carregador do gtag unico",   doc.count('googletagmanager.com/gtag/js'), 1, 'igual'),
         ("rotulo de conversao",        doc.count('Lr_VCIP2st8cEP3yurk-'), 1, 'min'),
         ("schema AutoBodyShop",        doc.count('AutoBodyShop'), 1, 'min'),
         ("schema FAQPage",             doc.count('FAQPage'), 1, 'min'),
+        ("servicos no schema",         doc.count('hasOfferCatalog'), 1, 'min'),
         ("lang=pt-BR no <html>",       doc.count('<html lang="pt-BR"'), 1, 'min'),
         ("uuid sobrando no HTML",      len(re.findall(r'src="[0-9a-f-]{36}"', doc)), 0, 'igual'),
         ("placeholder {{ }} sobrando", len(re.findall(r'\{\{[^}]+\}\}', doc)), 0, 'igual'),
@@ -783,6 +858,7 @@ def main():
     tpl = troca_imagens(tpl, mapa_img, mapa_extra, dims)
     doc = monta_html(tpl, mapa_fontes)
     doc = corrige_whatsapp(doc)
+    doc = enriquece_schema(doc)
 
     destino = os.path.join(RAIZ, SAIDA)
     with open(destino, 'w', encoding='utf-8', newline='\n') as f:
